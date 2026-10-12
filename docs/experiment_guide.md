@@ -1,0 +1,65 @@
+# Experiment Guide
+
+How to build and reproduce every result, and the order in which the component is developed.
+
+## Targets
+
+| Metric | Target |
+|--------|--------|
+| F1 (conversion prediction) | >= 0.82 |
+| Mean Absolute Error (conversion rate) | <= 0.08 |
+| Privacy leakage (membership inference) | <= 5% |
+| Adaptation latency | <= 60 s |
+| Cross-client accuracy gain | >= 15% |
+| Delayed-feedback MAE reduction | >= 20% |
+| Federated round time | <= 120 s |
+| Fault tolerance | survive one-third tenant dropout |
+
+## Build order
+
+The component is built stage by stage. Each stage ends in a working, tested, committed state.
+
+1. Environment and project setup.
+2. Data pipeline (`scripts/prepare_data.py`).
+3. Local Training Module and the model.
+4. Privacy Enforcement Layer.
+5. Federated Aggregation Server.
+6. Delayed Label Buffer.
+7. Continuous Adaptation Layer.
+8. REST service.
+9. Baselines.
+10. Evaluation and privacy testing.
+
+## Running experiments
+
+Each experiment is driven by a config file in `config/experiment/`:
+
+```
+python scripts/run_baseline.py   --config config/experiment/baseline_single.yaml
+python scripts/run_baseline.py   --config config/experiment/baseline_fed_nodelay.yaml
+python scripts/run_federated.py  --config config/experiment/proposed_full.yaml
+python scripts/run_evaluation.py
+```
+
+Each setup is run five times with different seeds; results are reported as mean and standard
+deviation to account for differential-privacy noise variability.
+
+## Privacy testing
+
+```
+python scripts/run_privacy_attack.py
+```
+
+Runs the shadow-model membership inference attack and reports the attack success rate. The attack
+is repeated across the privacy settings in `config/privacy/` (epsilon = 0.5, 1.0, 2.0) to chart
+the privacy-accuracy trade-off.
+
+## How the targets are met
+
+- Cross-client gain: at least one tenant is data-poor, so the federated model clearly beats its
+  isolated single-tenant model.
+- Delayed-feedback MAE reduction: the full framework is compared against the no-delay baseline over
+  a simulated 30-day cycle.
+- Privacy: the noise multiplier and clipping norm are tuned, then verified with the attack.
+- Credibility: synthetic parts (the delay) are calibrated to published benchmarks; seeds are fixed
+  and variation is reported.

@@ -1,0 +1,5 @@
+name: baseline_single_tenant
+description: Baseline 1 - each tenant trained only on its own data, no sharing, no delay handling.
+mode: single_tenant
+use_privacy: false
+use_delay_buffer: false

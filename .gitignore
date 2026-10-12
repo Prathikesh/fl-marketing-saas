@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Data (never committed)
+data/raw/*
+data/interim/*
+data/processed/*
+data/external/*
+!data/**/.gitkeep
+
+# Models and artifacts
+*.pt
+*.pth
+*.ckpt
+models/
+experiments/results/*
+!experiments/results/.gitkeep
+
+# Databases
+*.sqlite
+*.db
+
+# Env / secrets
+.env
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store

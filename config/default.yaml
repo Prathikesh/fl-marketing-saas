@@ -1,0 +1,19 @@
+seed: 42
+
+privacy:
+  epsilon: 1.0
+  noise_multiplier: 1.1
+  max_grad_norm: 1.0
+  delta: 1.0e-5
+
+federated:
+  num_tenants: 5
+  rounds: 10
+  local_epochs: 3
+  min_clients: 3
+
+adaptation:
+  buffer_threshold: 50
+  delay_min_days: 7
+  delay_max_days: 30
+  adapt_lr: 0.0005

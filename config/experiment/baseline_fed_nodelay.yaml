@@ -1,0 +1,5 @@
+name: baseline_fed_no_delay
+description: Baseline 2 - federated learning with privacy, but labels applied immediately with no delay buffer.
+mode: federated
+use_privacy: true
+use_delay_buffer: false

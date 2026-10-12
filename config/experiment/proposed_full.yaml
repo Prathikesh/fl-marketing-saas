@@ -1,0 +1,6 @@
+name: proposed_full
+description: Full framework - federated learning, differential privacy, delayed label buffer, continuous adaptation.
+mode: federated
+use_privacy: true
+use_delay_buffer: true
+use_adaptation: true
