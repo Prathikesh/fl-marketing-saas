@@ -1,5 +1,7 @@
 .PHONY: install dev prepare train baseline evaluate privacy serve test lint format
 
+export PYTHONPATH := src
+
 install:
 	pip install -r requirements.txt && pip install -e .
 

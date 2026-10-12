@@ -1,5 +1,13 @@
 seed: 42
 
+data:
+  raw_file: Lead Scoring.csv
+  tenant_key: Lead Source
+  min_tenant_rows: 150
+  launch_span_days: 90
+  val_size: 0.1
+  test_size: 0.2
+
 privacy:
   epsilon: 1.0
   noise_multiplier: 1.1

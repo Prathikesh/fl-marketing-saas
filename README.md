@@ -66,5 +66,12 @@ make test       # run the test suite
 
 ## Status
 
-Scaffold stage. The folder structure, configuration, and documentation are in place. Module
-bodies are stubs to be implemented stage by stage (see the experiment guide for the build order).
+- Project scaffold, configuration, and documentation: in place.
+- Data pipeline (`make prepare`): **done** — produces five heterogeneous tenants from the Lead
+  Scoring dataset, split by Lead Source, with a simulated 7-30 day conversion delay. See
+  [docs/data_pipeline.md](docs/data_pipeline.md).
+- Remaining modules (model, training, privacy, federation, adaptation, API, evaluation): stubs,
+  implemented stage by stage (see [docs/experiment_guide.md](docs/experiment_guide.md)).
+
+Note: because the project path contains a space, run through the `make` targets (which set
+`PYTHONPATH=src`) or prefix direct commands with `PYTHONPATH=src`.

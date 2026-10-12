@@ -4,8 +4,6 @@ import pandas as pd
 
 
 def build_binary_label(df: pd.DataFrame) -> pd.DataFrame:
-    raise NotImplementedError
-
-
-def build_rate_target(df: pd.DataFrame) -> pd.DataFrame:
-    raise NotImplementedError
+    out = df.copy()
+    out["converted"] = out["converted"].astype(int)
+    return out

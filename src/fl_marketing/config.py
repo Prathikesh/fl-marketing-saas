@@ -6,6 +6,15 @@ import yaml
 from pydantic import BaseModel
 
 
+class DataConfig(BaseModel):
+    raw_file: str
+    tenant_key: str
+    min_tenant_rows: int
+    launch_span_days: int
+    val_size: float
+    test_size: float
+
+
 class PrivacyConfig(BaseModel):
     epsilon: float
     noise_multiplier: float
@@ -29,6 +38,7 @@ class AdaptationConfig(BaseModel):
 
 class Config(BaseModel):
     seed: int
+    data: DataConfig
     privacy: PrivacyConfig
     federated: FederatedConfig
     adaptation: AdaptationConfig
