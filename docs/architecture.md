@@ -32,6 +32,19 @@ optimisation loop and returns a `ModelUpdate` (state dict + sample count + tenan
 trains centrally on the pooled tenants to confirm the data has learnable signal before federation
 and privacy are added.
 
+## Federation
+
+`core/federated/` runs the federated loop (`scripts/run_federated.py`). Each round: the server
+sends the current global weights to every `FederatedClient`, each client runs `local_train` on its
+tenant's data and returns a `ModelUpdate`, and the server combines them with `fedavg` (weighted by
+each tenant's sample count). `strategy.py` handles client selection and dropout tolerance.
+
+Observed behaviour: the federated model reaches about 0.77-0.79 F1 on the pooled test set, a few
+points below the centralized ceiling (~0.80). This gap is the expected non-IID penalty: the tenants
+have very different conversion rates (26% to 92%), which is the data-heterogeneity challenge of
+federated averaging. The data-poor, high-converting Reference tenant benefits most from the shared
+model, which is the effect the cross-client-gain evaluation measures.
+
 ## Data flow
 
 ```

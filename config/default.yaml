@@ -16,8 +16,9 @@ privacy:
 
 federated:
   num_tenants: 5
-  rounds: 10
+  rounds: 15
   local_epochs: 3
+  local_lr: 0.001
   min_clients: 3
 
 adaptation:
