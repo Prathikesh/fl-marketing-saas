@@ -34,12 +34,19 @@ The React app talks to the API through a dev proxy (`/api` -> `http://127.0.0.1:
 no cross-origin issues. The header shows "API connected" when the backend is reachable.
 
 In the UI:
-1. Click "Load high-intent lead" then "Predict conversion" — the probability gauge jumps near 100%.
-2. Click "Load low-intent lead" then "Predict" — the gauge drops near 0%.
-3. Click an outcome button ("Converted" / "Not converted") — the real label is matched back in the
+1. Click "High-intent sample" then "Predict conversion". The prediction panel first shows the live
+   pipeline — encoding the 79 lead features, running inference on the federated model, then
+   registering the lead in the delayed-label buffer — before revealing the probability gauge near
+   100%. These are the real steps the backend runs; surfacing them (over ~1.3s) makes clear the
+   prediction is computed, not looked up.
+2. Click "Low-intent sample" then "Predict" — the gauge drops near 0%.
+3. The numeric fields are validated inline (allowed ranges shown next to each label); the Predict
+   button stays disabled until every field is valid, so you cannot send a malformed lead.
+4. Click an outcome button ("Converted" / "Not converted") — the real label is matched back in the
    delayed buffer; the status panel updates.
-4. The "System status" panel shows the number of federated rounds, whether differential privacy is
-   on, and how many predictions are still waiting for their delayed label.
+5. The "System status" panel shows the number of federated rounds, whether differential privacy is
+   on, and how many predictions are still waiting for their delayed label (expand "Raw audit
+   response" for the live JSON).
 
 To demo privacy being on: train with `python scripts/run_federated.py --private --save`, restart
 `make serve`, and the status panel shows "Differential privacy: ON".

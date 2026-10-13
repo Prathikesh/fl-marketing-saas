@@ -21,6 +21,30 @@ forest, gradient boosting, and the feedforward NN) is about 0.81; reaching 0.82 
 require leaky columns. A clean ~0.80, with the privacy-accuracy trade-off characterized, is the
 honest and defensible result.
 
+### Model-strengthening ablation (why the MLP is kept as-is)
+
+The federated MLP was deliberately stress-tested to confirm it sits at the data ceiling rather than
+being under-tuned. Each change below was measured on the pooled test set against the current model
+(federated F1 = 0.7872); none improved it:
+
+| Change | F1 | vs current |
+|--------|------|-----------|
+| Current model | 0.7872 | — |
+| Class-weighted loss (`pos_weight`) | 0.7665 | worse |
+| LayerNorm architecture | 0.7692 | worse |
+| Cosine LR schedule | 0.7584 | worse |
+| 25 / 40 federated rounds | 0.7829 / 0.7798 | worse |
+| FedProx mu = 0.1 | 0.7851 | worse |
+| 5-model seed ensemble | 0.7892 | flat |
+
+Across five seeds the federated model scores **0.788 ± 0.003** — the seed-to-seed spread is larger
+than any gain from the changes above. This is the evidence that accuracy is bounded by the data, not
+by model capacity: the contribution of this component is the federated + privacy + adaptation
+framework reaching that ceiling without centralizing tenant data, not a higher raw F1. The model
+choice (a differentiable MLP) is itself required by the framework — FedAvg weight-averaging, DP-SGD,
+and online adaptation all need a gradient-trained parametric model, which rules out tree ensembles
+despite their strength on tabular data.
+
 ## Build order
 
 The component is built stage by stage. Each stage ends in a working, tested, committed state.
