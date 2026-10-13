@@ -44,6 +44,25 @@ In the UI:
 To demo privacy being on: train with `python scripts/run_federated.py --private --save`, restart
 `make serve`, and the status panel shows "Differential privacy: ON".
 
+## Testing the API with real leads
+
+Instead of hand-typing leads, `scripts/test_api_realdata.py` samples real rows from
+`data/raw/Lead Scoring.csv`, maps their raw columns to the `/predict` fields (Lead Source ->
+tenant_id via the manifest), POSTs each to the running API, and prints predicted probability,
+predicted label, the ACTUAL `Converted` value, and overall accuracy.
+
+The API must already be running (`make serve`). Then, in another terminal:
+```
+python scripts/test_api_realdata.py --n 20       # or --n 300 for a more stable number
+```
+Typical result: ~0.83 accuracy, consistent with the ~0.80 F1 ceiling — confirming the served
+model behaves like the trained one. Lead Source values outside the five tenants (e.g. "Referral
+Sites") fall back to tenant 0.
+
+To type a real lead into the React UI instead, pick any row from the CSV and copy its columns into
+the form fields (Lead Origin -> Lead origin, What is your current occupation -> Occupation, etc.);
+set Tenant from the row's Lead Source.
+
 ## Option B — terminal-only demo
 
 Each command tells one part of the story:

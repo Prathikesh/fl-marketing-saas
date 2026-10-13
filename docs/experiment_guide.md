@@ -50,6 +50,17 @@ python scripts/run_evaluation.py
 Each setup is run five times with different seeds; results are reported as mean and standard
 deviation to account for differential-privacy noise variability.
 
+## Testing the served API with real leads
+
+With the API running (`make serve`), `scripts/test_api_realdata.py` samples real rows from the
+dataset, POSTs them to `/predict`, and reports accuracy against the actual `Converted` label:
+
+```
+python scripts/test_api_realdata.py --n 300
+```
+
+Accuracy lands near the ~0.80 F1 ceiling, confirming the served model matches the trained one.
+
 ## Privacy testing
 
 ```
