@@ -51,6 +51,23 @@ best; larger mu lowered F1), because the tenants genuinely differ and constraini
 global model removes useful specialisation. It is kept as a configurable ablation; the default is
 `mu: 0.0` (plain FedAvg).
 
+## Privacy (DP-SGD)
+
+`core/privacy/dp_engine.py` provides `dp_local_train`, which wraps local training with Opacus so
+each tenant's update is produced under differential privacy (gradient clipping + Gaussian noise).
+A client uses this path when `run_federated.py` is run with `--private`; the noise multiplier,
+clipping norm and delta come from the `privacy` config.
+
+Observed cost: with the default noise, the global pooled F1 falls from about 0.77 to about 0.73,
+and the hardest small tenant (Olark Chat) drops the most. This is the expected privacy-accuracy
+trade-off.
+
+Epsilon accounting: `dp_local_train` reports the epsilon for a single round's local training (a
+fresh accountant per round). The cumulative budget across all rounds is higher, so a strict total
+epsilon <= 1.0 over full training is only reachable with much more noise (and lower F1). The
+privacy-accuracy trade-off is characterised properly in the epsilon sweep (evaluation stage), and
+the operational privacy guarantee is validated empirically by the membership inference attack.
+
 ## Data flow
 
 ```

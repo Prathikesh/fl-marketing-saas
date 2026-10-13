@@ -20,7 +20,7 @@ log = get_logger("run_federated")
 PROC = Path("data/processed")
 
 
-def run(config_path: str) -> dict[str, torch.Tensor]:
+def run(config_path: str, private: bool = False) -> dict[str, torch.Tensor]:
     cfg = load_config(config_path)
     set_seed(cfg.seed)
 
@@ -28,6 +28,7 @@ def run(config_path: str) -> dict[str, torch.Tensor]:
     feat_cols = store.feature_columns(manifest)
     tenants = store.load_all_tenants(PROC, manifest)
     feature_dim = len(feat_cols)
+    privacy = cfg.privacy if private else None
 
     clients = []
     for tid, df in tenants.items():
@@ -35,7 +36,7 @@ def run(config_path: str) -> dict[str, torch.Tensor]:
         loader = make_loader(train_df, feat_cols, batch_size=64, shuffle=True)
         clients.append(
             FederatedClient(
-                tid, loader, feature_dim, cfg.federated.local_epochs, cfg.federated.local_lr, cfg.federated.mu
+                tid, loader, feature_dim, cfg.federated.local_epochs, cfg.federated.local_lr, cfg.federated.mu, privacy
             )
         )
 
@@ -54,6 +55,10 @@ def run(config_path: str) -> dict[str, torch.Tensor]:
     tp, ty = predict_proba(model, test_loader)
     global_f1 = f1(ty.numpy(), tp.numpy(), thr)
     log.info("GLOBAL federated F1 on pooled test = %.4f (thr %.2f)", global_f1, thr)
+    if private:
+        eps = [c.last_epsilon for c in clients if c.last_epsilon is not None]
+        if eps:
+            log.info("differential privacy: mean per-round epsilon per tenant = %.3f (delta=%.0e)", sum(eps) / len(eps), cfg.privacy.delta)
 
     for tid, df in tenants.items():
         tl = make_loader(df[df.split == "test"], feat_cols, batch_size=256, shuffle=False)
@@ -66,8 +71,9 @@ def run(config_path: str) -> dict[str, torch.Tensor]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/default.yaml")
+    parser.add_argument("--private", action="store_true")
     args = parser.parse_args()
-    run(args.config)
+    run(args.config, private=args.private)
 
 
 if __name__ == "__main__":

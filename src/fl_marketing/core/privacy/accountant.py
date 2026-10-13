@@ -2,4 +2,4 @@ from __future__ import annotations
 
 
 def current_epsilon(privacy_engine, delta: float) -> float:
-    raise NotImplementedError
+    return float(privacy_engine.get_epsilon(delta))
