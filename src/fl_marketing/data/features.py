@@ -4,7 +4,7 @@ import pandas as pd
 
 BINARY_COLS = ["do_not_email", "free_copy"]
 NUMERIC_COLS = ["total_visits", "time_on_site", "page_views_per_visit", "activity_score", "profile_score"]
-CATEGORICAL_COLS = ["lead_origin", "last_activity", "occupation", "specialization", "city"]
+CATEGORICAL_COLS = ["lead_origin", "last_activity", "occupation", "specialization", "city", "last_notable_activity"]
 PASSTHROUGH = ["converted", "lead_source"]
 
 

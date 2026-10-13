@@ -14,13 +14,14 @@ COLUMN_MAP = {
     "What is your current occupation": "occupation",
     "Specialization": "specialization",
     "City": "city",
+    "Last Notable Activity": "last_notable_activity",
     "A free copy of Mastering The Interview": "free_copy",
     "Asymmetrique Activity Score": "activity_score",
     "Asymmetrique Profile Score": "profile_score",
 }
 
 # Dropped on purpose: identifiers and columns that leak the outcome
-# (Tags, Lead Quality, Last Notable Activity are assigned after the outcome is known).
+# (Tags and Lead Quality are sales dispositions assigned after the outcome is known).
 
 
 def harmonize_schema(df: pd.DataFrame) -> pd.DataFrame:

@@ -23,7 +23,14 @@ Supporting modules: `models/` (the neural network), `baselines/` (the two compar
 
 A single feedforward neural network (`models/conversion_net.py`) is used everywhere: inside each
 tenant, inside the global model, in both baselines, and in the privacy shadow models. It predicts
-conversion from tabular campaign features.
+conversion from the tabular lead features. Architecture: input -> 128 -> 64 -> 1, ReLU with
+dropout, trained with `BCEWithLogitsLoss`.
+
+Local training lives in `core/training/local_trainer.py`: `local_train` runs the per-tenant
+optimisation loop and returns a `ModelUpdate` (state dict + sample count + tenant id);
+`predict_proba` returns probabilities and targets for evaluation. `scripts/sanity_check.py`
+trains centrally on the pooled tenants to confirm the data has learnable signal before federation
+and privacy are added.
 
 ## Data flow
 
