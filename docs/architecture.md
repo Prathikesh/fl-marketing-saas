@@ -79,6 +79,15 @@ accumulated; once that reaches the adaptation threshold, `drain_fulfilled` hands
 Continuous Adaptation Layer and marks them consumed. Each lead carries a stable `campaign_id`
 (added by the data pipeline) so labels match back to the right prediction.
 
+## Continuous adaptation
+
+`core/adaptation/adapter.py` provides `incremental_update`: when enough real labels have arrived for
+a tenant, the drained batch (the leads' features with their now-known outcomes) is used to fine-tune
+the current model at a low learning rate (`adaptation.adapt_lr`) for a few epochs
+(`adaptation.adapt_epochs`). The low learning rate corrects recent prediction errors without
+overwriting what the model already learned. The resulting update feeds back into the next federated
+round. The buffer threshold, learning rate and epoch count are all configurable.
+
 ## Data flow
 
 ```

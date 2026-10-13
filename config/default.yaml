@@ -27,3 +27,4 @@ adaptation:
   delay_min_days: 7
   delay_max_days: 30
   adapt_lr: 0.0005
+  adapt_epochs: 3

@@ -36,6 +36,7 @@ class AdaptationConfig(BaseModel):
     delay_min_days: int
     delay_max_days: int
     adapt_lr: float
+    adapt_epochs: int
 
 
 class Config(BaseModel):
