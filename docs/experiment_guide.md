@@ -62,8 +62,12 @@ the privacy-accuracy trade-off.
 
 ## How the targets are met
 
-- Cross-client gain: at least one tenant is data-poor, so the federated model clearly beats its
-  isolated single-tenant model.
+- Cross-client gain: one tenant (Direct Traffic) is deliberately made data-poor by capping its
+  training set to about 50 leads (a "new business"), set via `data.poor_tenant` and
+  `data.poor_tenant_train_cap`. The federated model gives this tenant roughly a 10% F1 gain over its
+  isolated single-tenant model, while well-resourced tenants are largely unaffected. Measured by
+  `scripts/run_evaluation.py`. Note: tenants that are small but easy (Reference) or divergent
+  (Olark Chat) do not benefit, which is itself a finding about when cross-tenant learning helps.
 - Delayed-feedback MAE reduction: the full framework is compared against the no-delay baseline over
   a simulated 30-day cycle.
 - Privacy: the noise multiplier and clipping norm are tuned, then verified with the attack.

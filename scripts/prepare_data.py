@@ -36,6 +36,15 @@ def run(config_path: str) -> None:
 
     df, mapping = partition.assign_tenants(df, tenant_key="lead_source", min_rows=cfg.data.min_tenant_rows)
     df = partition.add_splits(df, val_size=cfg.data.val_size, test_size=cfg.data.test_size, seed=cfg.seed)
+
+    if cfg.data.poor_tenant and cfg.data.poor_tenant_train_cap:
+        mask = (df["lead_source"] == cfg.data.poor_tenant) & (df["split"] == "train")
+        poor_train = df[mask]
+        if len(poor_train) > cfg.data.poor_tenant_train_cap:
+            drop = poor_train.sample(n=len(poor_train) - cfg.data.poor_tenant_train_cap, random_state=cfg.seed).index
+            df = df.drop(index=drop)
+            log.info("capped %s train rows to %d (data-poor tenant)", cfg.data.poor_tenant, cfg.data.poor_tenant_train_cap)
+
     df["campaign_id"] = df["tenant_id"].astype(str) + "-" + df.groupby("tenant_id").cumcount().astype(str)
 
     non_feature = ["tenant_id", "launch_day", "label_arrival_day", "split", "campaign_id"]

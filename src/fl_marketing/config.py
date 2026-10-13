@@ -13,6 +13,8 @@ class DataConfig(BaseModel):
     launch_span_days: int
     val_size: float
     test_size: float
+    poor_tenant: str | None = None
+    poor_tenant_train_cap: int | None = None
 
 
 class PrivacyConfig(BaseModel):
