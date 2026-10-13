@@ -68,8 +68,9 @@ window (the dataset has no native conversion-rate column).
 
 `make prepare` writes to `data/processed/`:
 
-- `tenant_0.csv` ... `tenant_4.csv` — feature columns + `converted`, `launch_day`,
-  `label_arrival_day`, `split`.
+- `tenant_0.csv` ... `tenant_4.csv` — feature columns + `campaign_id`, `converted`, `launch_day`,
+  `label_arrival_day`, `split`. `campaign_id` (e.g. `0-12`) is a stable identifier the delayed
+  label buffer uses to match arriving results back to their prediction; it is not a feature.
 - `manifest.json` — seed, feature columns, and per-tenant row counts and conversion rates.
 
 ## Reproducibility

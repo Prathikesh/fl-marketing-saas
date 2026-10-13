@@ -36,8 +36,10 @@ def run(config_path: str) -> None:
 
     df, mapping = partition.assign_tenants(df, tenant_key="lead_source", min_rows=cfg.data.min_tenant_rows)
     df = partition.add_splits(df, val_size=cfg.data.val_size, test_size=cfg.data.test_size, seed=cfg.seed)
+    df["campaign_id"] = df["tenant_id"].astype(str) + "-" + df.groupby("tenant_id").cumcount().astype(str)
 
-    feat_cols = features.feature_columns(df.drop(columns=["tenant_id", "launch_day", "label_arrival_day", "split"]))
+    non_feature = ["tenant_id", "launch_day", "label_arrival_day", "split", "campaign_id"]
+    feat_cols = features.feature_columns(df.drop(columns=non_feature))
     tenants = partition.partition_by_tenant(df)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,7 +51,7 @@ def run(config_path: str) -> None:
         "feature_columns": feat_cols,
         "tenants": [],
     }
-    keep = feat_cols + ["converted", "launch_day", "label_arrival_day", "split"]
+    keep = feat_cols + ["campaign_id", "converted", "launch_day", "label_arrival_day", "split"]
     for tid, g in tenants.items():
         out_path = OUT_DIR / f"tenant_{tid}.csv"
         g[keep].to_csv(out_path, index=False)

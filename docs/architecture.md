@@ -68,6 +68,17 @@ epsilon <= 1.0 over full training is only reachable with much more noise (and lo
 privacy-accuracy trade-off is characterised properly in the epsilon sweep (evaluation stage), and
 the operational privacy guarantee is validated empirically by the membership inference attack.
 
+## Delayed label buffer
+
+`core/adaptation/buffer.py` holds the `DelayedLabelBuffer`. When a prediction is made it is
+registered with the campaign id, the day it was made and the day its real label is expected to
+arrive (`launch_day + 7..30`). A simulated clock advances; `due(current_day)` returns predictions
+whose label has arrived. When the real outcome comes in, `matcher.match_label` calls `fulfill`,
+which records the true label. `fulfilled_count` tracks how many real labels a tenant has
+accumulated; once that reaches the adaptation threshold, `drain_fulfilled` hands them to the
+Continuous Adaptation Layer and marks them consumed. Each lead carries a stable `campaign_id`
+(added by the data pipeline) so labels match back to the right prediction.
+
 ## Data flow
 
 ```

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-PASSTHROUGH = ["converted", "launch_day", "label_arrival_day", "split"]
+PASSTHROUGH = ["campaign_id", "converted", "launch_day", "label_arrival_day", "split"]
 
 
 def load_manifest(proc_dir: str | Path) -> dict:
