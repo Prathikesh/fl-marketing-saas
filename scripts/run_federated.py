@@ -20,7 +20,10 @@ log = get_logger("run_federated")
 PROC = Path("data/processed")
 
 
-def run(config_path: str, private: bool = False) -> dict[str, torch.Tensor]:
+MODELS = Path("models")
+
+
+def run(config_path: str, private: bool = False, save: bool = False) -> dict[str, torch.Tensor]:
     cfg = load_config(config_path)
     set_seed(cfg.seed)
 
@@ -42,6 +45,7 @@ def run(config_path: str, private: bool = False) -> dict[str, torch.Tensor]:
 
     server = FederatedServer(clients, feature_dim, cfg.federated.rounds, cfg.federated.min_clients)
     global_state = server.run()
+    audit = server.audit
 
     model = ConversionNet(in_dim=feature_dim)
     model.load_state_dict(global_state)
@@ -65,6 +69,17 @@ def run(config_path: str, private: bool = False) -> dict[str, torch.Tensor]:
         p, y = predict_proba(model, tl)
         log.info("  tenant %d (%s): test F1 = %.4f", tid, manifest["tenants"][tid]["source"], f1(y.numpy(), p.numpy(), thr))
 
+    if save:
+        MODELS.mkdir(parents=True, exist_ok=True)
+        torch.save(
+            {"state_dict": global_state, "threshold": float(thr), "feature_dim": feature_dim, "private": private},
+            MODELS / "global_model.pt",
+        )
+        import json
+
+        (MODELS / "audit.json").write_text(json.dumps(audit, indent=2))
+        log.info("saved model and audit log to %s", MODELS)
+
     return global_state
 
 
@@ -72,8 +87,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/default.yaml")
     parser.add_argument("--private", action="store_true")
+    parser.add_argument("--save", action="store_true")
     args = parser.parse_args()
-    run(args.config, private=args.private)
+    run(args.config, private=args.private, save=args.save)
 
 
 if __name__ == "__main__":

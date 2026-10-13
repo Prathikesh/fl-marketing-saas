@@ -25,6 +25,7 @@ def run(config_path: str) -> None:
 
     df = harmonize.harmonize_schema(df)
     df = labels.build_binary_label(df)
+    numeric_stats = features.fit_numeric_stats(df)
     df = features.encode_features(df)
     df = delay.inject_label_delay(
         df,
@@ -58,6 +59,7 @@ def run(config_path: str) -> None:
         "raw_file": cfg.data.raw_file,
         "feature_count": len(feat_cols),
         "feature_columns": feat_cols,
+        "numeric_stats": numeric_stats,
         "tenants": [],
     }
     keep = feat_cols + ["campaign_id", "converted", "launch_day", "label_arrival_day", "split"]

@@ -25,6 +25,7 @@ class FederatedServer:
         self.rounds = rounds
         self.min_clients = min_clients
         self.dropout_rate = dropout_rate
+        self.audit: list[dict] = []
 
     def run(self) -> dict[str, torch.Tensor]:
         global_state = ConversionNet(in_dim=self.feature_dim).state_dict()
@@ -33,5 +34,6 @@ class FederatedServer:
             updates = [c.train_round(global_state) for c in participating]
             updates = tolerate_dropout(updates, self.min_clients)
             global_state = fedavg(updates)
+            self.audit.append({"round": r, "participating_tenants": len(updates)})
             log.info("round %d/%d: aggregated %d tenant updates", r, self.rounds, len(updates))
         return global_state

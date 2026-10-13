@@ -70,8 +70,11 @@ make test       # run the test suite
 - Data pipeline (`make prepare`): **done** — produces five heterogeneous tenants from the Lead
   Scoring dataset, split by Lead Source, with a simulated 7-30 day conversion delay. See
   [docs/data_pipeline.md](docs/data_pipeline.md).
-- Remaining modules (model, training, privacy, federation, adaptation, API, evaluation): stubs,
-  implemented stage by stage (see [docs/experiment_guide.md](docs/experiment_guide.md)).
+- Model, local training, federated aggregation (FedAvg + FedProx ablation), differential privacy
+  (DP-SGD), delayed label buffer, continuous adaptation: **done**.
+- Evaluation (cross-client gain, delayed-feedback MAE, membership-inference privacy): **done**.
+- REST API (`/predict`, `/feedback`, `/audit`): **done** — run `make serve` after training with
+  `python scripts/run_federated.py --save`. See [docs/api_spec.md](docs/api_spec.md).
 
 Note: because the project path contains a space, run through the `make` targets (which set
 `PYTHONPATH=src`) or prefix direct commands with `PYTHONPATH=src`.
