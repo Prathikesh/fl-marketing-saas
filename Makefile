@@ -1,4 +1,4 @@
-.PHONY: install dev prepare train baseline evaluate delayed privacy serve test lint format
+.PHONY: install dev prepare train baseline evaluate delayed privacy serve ui test lint format
 
 export PYTHONPATH := src
 
@@ -28,6 +28,9 @@ privacy:
 
 serve:
 	python scripts/serve_api.py
+
+ui:
+	open ui/index.html
 
 test:
 	pytest

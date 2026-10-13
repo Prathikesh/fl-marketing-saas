@@ -75,6 +75,8 @@ make test       # run the test suite
 - Evaluation (cross-client gain, delayed-feedback MAE, membership-inference privacy): **done**.
 - REST API (`/predict`, `/feedback`, `/audit`): **done** — run `make serve` after training with
   `python scripts/run_federated.py --save`. See [docs/api_spec.md](docs/api_spec.md).
+- Web UI demo (`ui/index.html`, `make ui`): **done** — a lead-scoring form backed by the live API.
+  See [docs/demo_guide.md](docs/demo_guide.md) for the full PP1 demo walkthrough.
 
 Note: because the project path contains a space, run through the `make` targets (which set
 `PYTHONPATH=src`) or prefix direct commands with `PYTHONPATH=src`.
