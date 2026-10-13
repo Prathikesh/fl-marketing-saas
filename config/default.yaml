@@ -19,6 +19,7 @@ federated:
   rounds: 15
   local_epochs: 3
   local_lr: 0.001
+  mu: 0.0
   min_clients: 3
 
 adaptation:

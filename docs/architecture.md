@@ -39,11 +39,17 @@ sends the current global weights to every `FederatedClient`, each client runs `l
 tenant's data and returns a `ModelUpdate`, and the server combines them with `fedavg` (weighted by
 each tenant's sample count). `strategy.py` handles client selection and dropout tolerance.
 
-Observed behaviour: the federated model reaches about 0.77-0.79 F1 on the pooled test set, a few
+Observed behaviour: the federated model reaches about 0.77-0.78 F1 on the pooled test set, a few
 points below the centralized ceiling (~0.80). This gap is the expected non-IID penalty: the tenants
 have very different conversion rates (26% to 92%), which is the data-heterogeneity challenge of
 federated averaging. The data-poor, high-converting Reference tenant benefits most from the shared
 model, which is the effect the cross-client-gain evaluation measures.
+
+FedProx: `local_train` supports a proximal term (controlled by `federated.mu`) as an optional
+mitigation for client drift. It was evaluated here and did not improve pooled accuracy (mu=0 was
+best; larger mu lowered F1), because the tenants genuinely differ and constraining them toward the
+global model removes useful specialisation. It is kept as a configurable ablation; the default is
+`mu: 0.0` (plain FedAvg).
 
 ## Data flow
 

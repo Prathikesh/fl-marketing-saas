@@ -33,7 +33,11 @@ def run(config_path: str) -> dict[str, torch.Tensor]:
     for tid, df in tenants.items():
         train_df = df[df.split == "train"]
         loader = make_loader(train_df, feat_cols, batch_size=64, shuffle=True)
-        clients.append(FederatedClient(tid, loader, feature_dim, cfg.federated.local_epochs, cfg.federated.local_lr))
+        clients.append(
+            FederatedClient(
+                tid, loader, feature_dim, cfg.federated.local_epochs, cfg.federated.local_lr, cfg.federated.mu
+            )
+        )
 
     server = FederatedServer(clients, feature_dim, cfg.federated.rounds, cfg.federated.min_clients)
     global_state = server.run()

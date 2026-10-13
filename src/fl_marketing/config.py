@@ -27,6 +27,7 @@ class FederatedConfig(BaseModel):
     rounds: int
     local_epochs: int
     local_lr: float
+    mu: float
     min_clients: int
 
 
