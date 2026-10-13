@@ -9,21 +9,29 @@ cd fl-marketing-saas
 source .venv/bin/activate      # or: make dev   (first time only)
 ```
 
-## Option A — full live demo with the web UI (recommended)
+## Option A — full live demo with the React web UI (recommended)
 
-Two terminals.
+The UI is a Vite + React app in `ui/`. First time only, install its dependencies:
+```
+make ui-install        # one-time: installs React/Vite (cd ui && npm install)
+```
 
-Terminal 1 (prepare, train, serve the API):
+Then use two terminals.
+
+Terminal 1 (prepare, train, serve the API backend):
 ```
 make prepare                           # build the 5 tenants + data-poor tenant + delay
 python scripts/run_federated.py --save # federated training, saves the model for serving
 make serve                             # starts the API at http://127.0.0.1:8000
 ```
 
-Terminal 2 (open the UI):
+Terminal 2 (start the React UI):
 ```
-make ui                                # opens ui/index.html in the browser
+make ui                                # starts Vite at http://localhost:5173 and opens the browser
 ```
+
+The React app talks to the API through a dev proxy (`/api` -> `http://127.0.0.1:8000`), so there are
+no cross-origin issues. The header shows "API connected" when the backend is reachable.
 
 In the UI:
 1. Click "Load high-intent lead" then "Predict conversion" — the probability gauge jumps near 100%.

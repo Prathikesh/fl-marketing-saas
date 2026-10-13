@@ -37,5 +37,9 @@ experiments/results/*
 .mypy_cache/
 .ipynb_checkpoints/
 
+# Node / UI
+node_modules/
+ui/dist/
+
 # OS
 .DS_Store
