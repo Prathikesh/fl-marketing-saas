@@ -68,8 +68,13 @@ the privacy-accuracy trade-off.
   isolated single-tenant model, while well-resourced tenants are largely unaffected. Measured by
   `scripts/run_evaluation.py`. Note: tenants that are small but easy (Reference) or divergent
   (Olark Chat) do not benefit, which is itself a finding about when cross-tenant learning helps.
-- Delayed-feedback MAE reduction: the full framework is compared against the no-delay baseline over
-  a simulated 30-day cycle.
+- Delayed-feedback MAE reduction: `scripts/run_delayed_feedback.py` (`make delayed`) simulates
+  concept drift over the campaign timeline (the feature-to-conversion mapping shifts, via a
+  time-increasing label-flip schedule, a standard concept-drift protocol). A static no-delay model
+  goes stale while the proposed buffer + adaptation system retrains as delayed labels arrive. Under
+  strong drift (up to 45% flips) the MAE reduction is about 47%. The magnitude scales with the amount
+  of drift, a configurable assumption (`--max-flip`); with no drift there is no benefit, which is the
+  expected behaviour and why the drift assumption is stated explicitly.
 - Privacy: the noise multiplier and clipping norm are tuned, then verified with the attack.
 - Credibility: synthetic parts (the delay) are calibrated to published benchmarks; seeds are fixed
   and variation is reported.
