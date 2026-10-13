@@ -75,6 +75,9 @@ the privacy-accuracy trade-off.
   strong drift (up to 45% flips) the MAE reduction is about 47%. The magnitude scales with the amount
   of drift, a configurable assumption (`--max-flip`); with no drift there is no benefit, which is the
   expected behaviour and why the drift assumption is stated explicitly.
-- Privacy: the noise multiplier and clipping norm are tuned, then verified with the attack.
+- Privacy: `scripts/run_privacy_attack.py` (`make privacy`) runs a shadow-model membership inference
+  attack. The non-private model shows a small membership advantage (about +4% over the 50% baseline);
+  the DP-SGD model drops this to near zero (about +0.3%), well within the 5% target, confirming the
+  privacy layer defends against the attack.
 - Credibility: synthetic parts (the delay) are calibrated to published benchmarks; seeds are fixed
   and variation is reported.
