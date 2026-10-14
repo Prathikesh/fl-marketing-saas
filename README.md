@@ -51,7 +51,10 @@ make prepare    # build per-tenant datasets from the raw data
 make train      # run the full federated framework
 make baseline   # run a baseline for comparison
 make evaluate   # produce the comparison metrics and tables
+make personalize # per-tenant personalization (shared backbone + fine-tuned head)
 make privacy    # run the membership inference privacy test
+make epsilon    # privacy vs accuracy vs leakage trade-off across DP noise levels
+make faults     # fault tolerance under per-round tenant dropout
 make serve      # launch the REST API
 make test       # run the test suite
 ```
