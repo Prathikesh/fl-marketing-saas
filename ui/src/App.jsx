@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Gauge, Legend, GroupedBars, BarList, CompareBars } from "./charts.jsx";
+import { PERSONALIZATION, PRIVACY, FAULTS, ROBUSTNESS, COMM } from "./results.js";
 
 const API = "/api";
 
@@ -31,10 +33,11 @@ const RANGES = {
   activity_score: { min: 0, max: 30, label: "Activity score", step: "1", hint: "0–30" },
 };
 
-const STEPS = [
-  "Encoding 79 lead features",
-  "Running inference on federated model",
-  "Registering in delayed-label buffer",
+const STEPS = ["Encoding 79 lead features", "Running inference on federated model", "Registering in delayed-label buffer"];
+const PERS_SERIES = [
+  { key: "isolated", label: "Isolated (alone)", var: "--s1" },
+  { key: "shared", label: "Shared federated", var: "--s2" },
+  { key: "personalized", label: "Personalized", var: "--s3" },
 ];
 
 function validate(form) {
@@ -50,6 +53,8 @@ function validate(form) {
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
 export default function App() {
+  const [tab, setTab] = useState("demo");
+  const [theme, setTheme] = useState(() => (typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
   const [form, setForm] = useState(BASE);
   const [result, setResult] = useState(null);
   const [campaign, setCampaign] = useState(null);
@@ -63,17 +68,16 @@ export default function App() {
 
   const errors = validate(form);
   const hasErrors = Object.keys(errors).length > 0;
-
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
 
   const refreshAudit = useCallback(async () => {
     try {
       const r = await fetch(`${API}/audit`);
       setAudit(await r.json());
       setOnline(true);
-    } catch {
-      setOnline(false);
-    }
+    } catch { setOnline(false); }
   }, []);
 
   useEffect(() => { refreshAudit(); }, [refreshAudit]);
@@ -84,29 +88,20 @@ export default function App() {
     const id = "lead-" + counter;
     setCounter(counter + 1);
     setCampaign(id);
-    setFb("");
-    setResult(null);
-    setPredicting(true);
-    setStage(0);
+    setFb(""); setResult(null); setPredicting(true); setStage(0);
 
     let i = 0;
     clearInterval(timer.current);
-    timer.current = setInterval(() => {
-      i += 1;
-      if (i < STEPS.length) setStage(i);
-      else clearInterval(timer.current);
-    }, 420);
+    timer.current = setInterval(() => { i += 1; if (i < STEPS.length) setStage(i); else clearInterval(timer.current); }, 420);
 
     const body = {
-      campaign_id: id,
-      tenant_id: Number(form.tenant_id),
+      campaign_id: id, tenant_id: Number(form.tenant_id),
       lead_origin: form.lead_origin, occupation: form.occupation,
       last_activity: form.last_activity, last_notable_activity: form.last_notable_activity,
       specialization: form.specialization,
       total_visits: Number(form.total_visits), time_on_site: Number(form.time_on_site),
       page_views_per_visit: Number(form.page_views_per_visit), activity_score: Number(form.activity_score),
     };
-
     let res;
     try {
       const [r] = await Promise.all([
@@ -114,14 +109,9 @@ export default function App() {
         sleep(1350),
       ]);
       res = await r.json();
-    } catch {
-      res = { error: true };
-    }
+    } catch { res = { error: true }; }
     clearInterval(timer.current);
-    setPredicting(false);
-    setStage(0);
-    setResult(res);
-    refreshAudit();
+    setPredicting(false); setStage(0); setResult(res); refreshAudit();
   };
 
   const feedback = async (converted) => {
@@ -129,105 +119,151 @@ export default function App() {
     try {
       const r = await fetch(`${API}/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign_id: campaign, converted }) });
       const d = await r.json();
-      setFb(`Real outcome submitted — ${d.status} (tenant fulfilled labels: ${d.tenant_fulfilled_count})`);
+      setFb(`Real outcome recorded — ${d.status} (tenant fulfilled labels: ${d.tenant_fulfilled_count})`);
       refreshAudit();
-    } catch {
-      setFb("Could not reach the API.");
-    }
+    } catch { setFb("Could not reach the API."); }
   };
 
   const pct = result && !result.error ? result.conversion_probability * 100 : 0;
   const positive = result && result.predicted_converted === 1;
+  const gaugeColor = !result || result.error ? "var(--muted)" : positive ? "var(--good)" : "var(--critical)";
 
   return (
     <div className="app">
       <header>
-        <div>
-          <h1>AI Marketing — Federated Lead Conversion Predictor</h1>
-          <p>Privacy-preserving continuous learning across multiple tenants</p>
+        <div className="brand">
+          <h1>Federated Lead Intelligence</h1>
+          <p>Privacy-preserving continuous learning across marketing tenants</p>
         </div>
-        <div className={`status ${online ? "up" : "down"}`}>
-          <span className="dot" /> {online ? "API connected" : "API offline"}
+        <div className="head-right">
+          <div className={`status ${online ? "up" : "down"}`}><span className="dot" /> {online ? "API connected" : "API offline"}</div>
+          <button className="theme" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "Light" : "Dark"}</button>
         </div>
       </header>
 
-      <div className="grid">
-        <section className="card">
-          <div className="card-head">
-            <h2>Lead details</h2>
-            <div className="presets">
-              <button className="ghost" onClick={() => setForm({ ...form, ...HIGH })}>High-intent sample</button>
-              <button className="ghost" onClick={() => setForm({ ...form, ...LOW })}>Low-intent sample</button>
-            </div>
-          </div>
+      <nav className="tabs">
+        <button className={tab === "demo" ? "active" : ""} onClick={() => setTab("demo")}>Live demo</button>
+        <button className={tab === "results" ? "active" : ""} onClick={() => setTab("results")}>Research results</button>
+      </nav>
 
-          <div className="fields">
-            <Field label="Tenant (client business)">
-              <select value={form.tenant_id} onChange={set("tenant_id")}>
-                {TENANTS.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </Field>
-            <Select label="Lead origin" value={form.lead_origin} onChange={set("lead_origin")} opts={LEAD_ORIGIN} />
-            <Select label="Occupation" value={form.occupation} onChange={set("occupation")} opts={OCCUPATION} />
-            <Select label="Last activity" value={form.last_activity} onChange={set("last_activity")} opts={LAST_ACTIVITY} />
-            <Select label="Last notable activity" value={form.last_notable_activity} onChange={set("last_notable_activity")} opts={LAST_NOTABLE} />
-            <Select label="Specialization" value={form.specialization} onChange={set("specialization")} opts={SPECIALIZATION} />
-            {Object.entries(RANGES).map(([key, r]) => (
-              <Num key={key} label={r.label} value={form[key]} step={r.step} hint={r.hint} error={errors[key]} onChange={set(key)} />
-            ))}
-          </div>
-
-          <button className="primary" onClick={predict} disabled={hasErrors || predicting}>
-            {predicting ? "Predicting…" : "Predict conversion"}
-          </button>
-          {hasErrors && <span className="form-note">Fix the highlighted fields to continue.</span>}
-          {!hasErrors && campaign && !predicting && <span className="form-note ok">{campaign} registered in the delayed buffer.</span>}
-        </section>
-
-        <div className="col">
+      {tab === "demo" ? (
+        <div className="grid">
           <section className="card">
-            <h2>Prediction</h2>
-            {predicting ? (
-              <div className="pipeline">
-                <div className="pbar"><div className="pbar-fill" style={{ width: `${((stage + 1) / STEPS.length) * 100}%` }} /></div>
-                <ol className="steps">
-                  {STEPS.map((s, idx) => (
-                    <li key={s} className={idx < stage ? "done" : idx === stage ? "active" : ""}>
-                      <span className="tick">{idx < stage ? "done" : idx === stage ? "running" : "queued"}</span>
-                      {s}
-                    </li>
-                  ))}
-                </ol>
+            <div className="card-head">
+              <h2>Lead details</h2>
+              <div className="presets">
+                <button className="ghost" onClick={() => setForm({ ...form, ...HIGH })}>High-intent sample</button>
+                <button className="ghost" onClick={() => setForm({ ...form, ...LOW })}>Low-intent sample</button>
               </div>
-            ) : (
-              <div className="result">
-                <div className="prob">{result && !result.error ? pct.toFixed(1) + "%" : "—"}</div>
-                <div className="bar"><div className="fill" style={{ width: pct + "%", background: positive ? "var(--good)" : "var(--bad)" }} /></div>
-                <div className="verdict" style={{ color: !result ? "var(--muted)" : result.error ? "var(--bad)" : positive ? "var(--good)" : "var(--bad)" }}>
-                  {!result ? "Enter a lead and predict" : result.error ? "API not reachable" : positive ? "Likely to CONVERT" : "Unlikely to convert"}
+            </div>
+            <div className="fields">
+              <Field label="Tenant (client business)">
+                <select value={form.tenant_id} onChange={set("tenant_id")}>
+                  {TENANTS.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </Field>
+              <Select label="Lead origin" value={form.lead_origin} onChange={set("lead_origin")} opts={LEAD_ORIGIN} />
+              <Select label="Occupation" value={form.occupation} onChange={set("occupation")} opts={OCCUPATION} />
+              <Select label="Last activity" value={form.last_activity} onChange={set("last_activity")} opts={LAST_ACTIVITY} />
+              <Select label="Last notable activity" value={form.last_notable_activity} onChange={set("last_notable_activity")} opts={LAST_NOTABLE} />
+              <Select label="Specialization" value={form.specialization} onChange={set("specialization")} opts={SPECIALIZATION} />
+              {Object.entries(RANGES).map(([key, r]) => (
+                <Num key={key} label={r.label} value={form[key]} step={r.step} hint={r.hint} error={errors[key]} onChange={set(key)} />
+              ))}
+            </div>
+            <button className="primary" onClick={predict} disabled={hasErrors || predicting}>{predicting ? "Predicting…" : "Predict conversion"}</button>
+            {hasErrors && <span className="form-note err">Fix the highlighted fields to continue.</span>}
+            {!hasErrors && campaign && !predicting && <span className="form-note">{campaign} registered in the delayed buffer.</span>}
+          </section>
+
+          <div className="col">
+            <section className="card">
+              <h2>Prediction</h2>
+              {predicting ? (
+                <div className="pipeline">
+                  <div className="pbar"><div className="pbar-fill" style={{ width: `${((stage + 1) / STEPS.length) * 100}%` }} /></div>
+                  <ol className="steps">
+                    {STEPS.map((s, idx) => (
+                      <li key={s} className={idx < stage ? "done" : idx === stage ? "active" : ""}>
+                        <span className="tick">{idx < stage ? "done" : idx === stage ? "running" : "queued"}</span>{s}
+                      </li>
+                    ))}
+                  </ol>
                 </div>
-                {result && !result.error && <div className="muted">decision threshold {result.threshold}</div>}
+              ) : (
+                <div className="result">
+                  <Gauge pct={pct} color={gaugeColor} idle={!result || result.error} />
+                  <div className="prob" style={{ color: gaugeColor }}>{result && !result.error ? pct.toFixed(1) + "%" : "—"}</div>
+                  <div className="verdict" style={{ color: gaugeColor }}>
+                    {!result ? "Enter a lead and predict" : result.error ? "API not reachable" : positive ? "Likely to CONVERT" : "Unlikely to convert"}
+                  </div>
+                  {result && !result.error && <div className="muted">decision threshold {result.threshold}</div>}
+                </div>
+              )}
+              <div className="presets outcome">
+                <button className="good" onClick={() => feedback(1)} disabled={predicting}>Record outcome: Converted</button>
+                <button className="bad" onClick={() => feedback(0)} disabled={predicting}>Record outcome: Not converted</button>
               </div>
-            )}
-            <div className="presets outcome">
-              <button className="good" onClick={() => feedback(1)} disabled={predicting}>Record outcome: Converted</button>
-              <button className="bad" onClick={() => feedback(0)} disabled={predicting}>Record outcome: Not converted</button>
-            </div>
-            {fb && <div className="muted fb">{fb}</div>}
+              {fb && <div className="muted fb">{fb}</div>}
+            </section>
+
+            <section className="card">
+              <h2>System status (live from API)</h2>
+              <Row k="Federated rounds completed" v={audit ? audit.federated_rounds.length : "—"} />
+              <Row k="Differential privacy" v={audit ? <span className={`pill ${audit.differential_privacy ? "on" : "off"}`}>{audit.differential_privacy ? "ON" : "OFF"}</span> : "—"} />
+              <Row k="Predictions awaiting delayed label" v={audit ? audit.buffer_pending : "—"} />
+              <details className="audit"><summary>Raw audit response</summary><pre>{audit ? JSON.stringify(audit, null, 2) : "—"}</pre></details>
+            </section>
+          </div>
+        </div>
+      ) : (
+        <div className="results">
+          <p className="results-intro">Benchmark results from the evaluation suite. Each panel is reproducible with the <code>make</code> target shown; the numbers are measured, not illustrative.</p>
+
+          <section className="card wide">
+            <div className="card-head"><h2>Cross-tenant learning &amp; personalization</h2><code>{PERSONALIZATION.reproduce}</code></div>
+            <p className="muted">Test F1 per tenant. Federation lifts the data-poor tenant; personalization recovers the divergent tenant (Olark Chat) that the shared model alone hurt — so every tenant ends at least as good as training alone.</p>
+            <Legend series={PERS_SERIES} />
+            <GroupedBars tenants={PERSONALIZATION.tenants} series={PERS_SERIES} domain={1} />
           </section>
 
-          <section className="card">
-            <h2>System status (live from API)</h2>
-            <Row k="Federated rounds completed" v={audit ? audit.federated_rounds.length : "—"} />
-            <Row k="Differential privacy" v={audit ? <span className={`pill ${audit.differential_privacy ? "on" : "off"}`}>{audit.differential_privacy ? "ON" : "OFF"}</span> : "—"} />
-            <Row k="Predictions awaiting delayed label" v={audit ? audit.buffer_pending : "—"} />
-            <details className="audit">
-              <summary>Raw audit response</summary>
-              <pre>{audit ? JSON.stringify(audit, null, 2) : "—"}</pre>
-            </details>
-          </section>
+          <div className="results-grid">
+            <section className="card">
+              <div className="card-head"><h2>Privacy vs accuracy</h2><code>{PRIVACY.reproduce}</code></div>
+              <p className="muted">Differential privacy collapses membership-inference leakage from +4% to within ±0.3% for a ~5-point F1 cost.</p>
+              <table className="rtable">
+                <thead><tr><th>Setting</th><th>ε/round</th><th>F1</th><th>Leakage</th></tr></thead>
+                <tbody>
+                  {PRIVACY.rows.map((r) => (
+                    <tr key={r.setting}>
+                      <td>{r.setting}</td><td>{r.eps}</td><td>{r.f1.toFixed(4)}</td>
+                      <td className={Math.abs(r.advantage) <= 1 ? "good-text" : "crit-text"}>{r.advantage > 0 ? "+" : ""}{r.advantage}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+
+            <section className="card">
+              <div className="card-head"><h2>Robustness to poisoning</h2><code>{ROBUSTNESS.reproduce}</code></div>
+              <p className="muted">One malicious tenant collapses plain FedAvg; robust aggregation filters it out.</p>
+              <BarList rows={ROBUSTNESS.rows} max={1} />
+            </section>
+
+            <section className="card">
+              <div className="card-head"><h2>Fault tolerance</h2><code>{FAULTS.reproduce}</code></div>
+              <p className="muted">Global F1 as tenants drop out per round. Below quorum (min 3 of 5) the server safely aborts.</p>
+              <BarList rows={FAULTS.rows} max={1} nullLabel="quorum lost" />
+            </section>
+
+            <section className="card">
+              <div className="card-head"><h2>Communication cost</h2><code>{COMM.reproduce}</code></div>
+              <p className="muted">Model update {COMM.updateSize} per transfer. Federation trades more bytes for never moving raw data — the benefit here is privacy, not bandwidth.</p>
+              <CompareBars rows={COMM.rows} unit="MB" />
+            </section>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
