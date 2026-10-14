@@ -144,6 +144,23 @@ epsilon over all federated rounds is higher still. So the strict epsilon <= 1 gu
 this noise/round budget; the defensible claim is the empirical one — DP drives measured leakage to
 near zero at a quantified accuracy cost — not a formal small-epsilon guarantee.
 
+## Fault tolerance (tenant dropout)
+
+`scripts/run_fault_tolerance.py` (`make faults`) drops a fixed number of tenants at random each
+federated round and checks the global model still trains. With 5 tenants and `min_clients = 3`:
+
+| Dropped / round | % offline | Avg tenants / round | Federated F1 |
+|-----------------|----------:|--------------------:|-------------:|
+| 0 | 0% | 5.0 | 0.7872 |
+| 1 | 20% | 4.0 | 0.7875 |
+| 2 | 40% | 3.0 | 0.7824 |
+| 3 | 60% | quorum lost | aborted (min_clients enforced) |
+
+The model tolerates losing up to 2 of 5 tenants (40%) per round — beyond the one-third target — with
+negligible F1 change, because FedAvg is sample-weighted and the remaining tenants still cover the
+feature space. At 60% dropout the server hits the `min_clients` floor and aborts the round rather
+than aggregating too few updates: graceful degradation plus a hard safety floor.
+
 ## How the targets are met
 
 - Cross-client gain: one tenant (Direct Traffic) is deliberately made data-poor by capping its

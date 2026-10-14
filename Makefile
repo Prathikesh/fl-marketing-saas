@@ -1,4 +1,4 @@
-.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon serve ui-install ui test lint format
+.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon faults serve ui-install ui test lint format
 
 export PYTHONPATH := src
 
@@ -31,6 +31,9 @@ privacy:
 
 epsilon:
 	python scripts/run_epsilon_sweep.py
+
+faults:
+	python scripts/run_fault_tolerance.py
 
 serve:
 	python scripts/serve_api.py
