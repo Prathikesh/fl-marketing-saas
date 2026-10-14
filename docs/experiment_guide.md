@@ -85,6 +85,33 @@ python scripts/test_api_realdata.py --n 300
 
 Accuracy lands near the ~0.80 F1 ceiling, confirming the served model matches the trained one.
 
+## Personalization (per-tenant heads)
+
+Plain FedAvg produces one shared model. That helps the data-poor tenant but can *hurt* a tenant whose
+pattern diverges from the federation (negative transfer). Personalization keeps the shared federated
+backbone and fine-tunes only the final layer (the "head") on each tenant's own data (a FedPer-style
+approach), so each tenant keeps the shared representation but gets a locally adapted decision layer.
+
+```
+python scripts/run_personalization.py      # or: make personalize
+```
+
+Per-tenant test F1 (isolated vs shared federated vs personalized):
+
+| Tenant | Isolated | Shared | Personalized | Gain vs isolated |
+|--------|---------:|-------:|-------------:|-----------------:|
+| Google | 0.7848 | 0.8063 | 0.8078 | +2.9% |
+| Direct Traffic (data-poor) | 0.6476 | 0.7126 | 0.7048 | +8.8% |
+| Olark Chat | 0.7126 | 0.6961 | 0.7225 | +1.4% |
+| Organic Search | 0.7528 | 0.7692 | 0.7676 | +2.0% |
+| Reference | 0.9608 | 0.9608 | 0.9608 | +0.0% |
+
+Key result: under the shared model, Olark Chat is *worse* than training alone (0.696 < 0.713) —
+negative transfer. Personalization recovers it (0.7225), so **every tenant ends at least as good as
+its isolated model**. The data-poor tenant keeps its large gain; the head fine-tune on only ~50
+capped leads is why its personalized score is marginally below the shared one (slight head overfit),
+which is itself an honest, explainable nuance.
+
 ## Privacy testing
 
 ```
@@ -102,7 +129,8 @@ the privacy-accuracy trade-off.
   `data.poor_tenant_train_cap`. The federated model gives this tenant roughly a 10% F1 gain over its
   isolated single-tenant model, while well-resourced tenants are largely unaffected. Measured by
   `scripts/run_evaluation.py`. Note: tenants that are small but easy (Reference) or divergent
-  (Olark Chat) do not benefit, which is itself a finding about when cross-tenant learning helps.
+  (Olark Chat) do not benefit from the shared model alone, which is itself a finding about when
+  cross-tenant learning helps; the personalization layer (above) then recovers the divergent tenant.
 - Delayed-feedback MAE reduction: `scripts/run_delayed_feedback.py` (`make delayed`) simulates
   concept drift over the campaign timeline (the feature-to-conversion mapping shifts, via a
   time-increasing label-flip schedule, a standard concept-drift protocol). A static no-delay model

@@ -1,4 +1,4 @@
-.PHONY: install dev prepare train baseline evaluate delayed privacy serve ui-install ui test lint format
+.PHONY: install dev prepare train baseline evaluate personalize delayed privacy serve ui-install ui test lint format
 
 export PYTHONPATH := src
 
@@ -19,6 +19,9 @@ baseline:
 
 evaluate:
 	python scripts/run_evaluation.py
+
+personalize:
+	python scripts/run_personalization.py
 
 delayed:
 	python scripts/run_delayed_feedback.py

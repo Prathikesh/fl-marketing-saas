@@ -51,6 +51,13 @@ best; larger mu lowered F1), because the tenants genuinely differ and constraini
 global model removes useful specialisation. It is kept as a configurable ablation; the default is
 `mu: 0.0` (plain FedAvg).
 
+Personalization: `core/federated/personalization.py` (`scripts/run_personalization.py`) addresses
+the non-IID penalty from the other direction. Instead of forcing tenants together, it keeps the
+shared federated backbone and fine-tunes only the final layer on each tenant's own data (FedPer
+style). A divergent tenant (Olark Chat) is actually *worse* under the shared model than training
+alone; personalization recovers it so every tenant ends at least as good as its isolated baseline,
+while the data-poor tenant keeps its large federation gain. See the experiment guide for the table.
+
 ## Privacy (DP-SGD)
 
 `core/privacy/dp_engine.py` provides `dp_local_train`, which wraps local training with Opacus so
