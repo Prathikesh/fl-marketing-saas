@@ -182,6 +182,28 @@ outliers (median takes the middle value; trimmed mean drops the extremes), so th
 filtered out and accuracy is almost fully restored. This pairs a *security* guarantee (robustness to
 a malicious tenant) with the existing *privacy* guarantee (DP against an honest-but-curious server).
 
+## Communication cost (federated vs centralized)
+
+`scripts/run_comm_cost.py` (`make commcost`) quantifies the bandwidth trade-off. The model is small
+(18,561 parameters = 72.5 KB per transfer); federation sends it up and down every round, while
+centralizing would ship each tenant's raw training rows once.
+
+| Quantity | Value |
+|----------|-------|
+| Model update size (one direction) | 72.5 KB |
+| Federated traffic per round (all tenants, up + down) | 725 KB |
+| Federated traffic over 15 rounds | 10.6 MB |
+| Centralized one-time raw-data upload | 1.3 MB (4,475 training rows) |
+| Federated / centralized ratio | 7.9x |
+
+Honest finding: with a small model and a static dataset, federation actually moves *more* bytes than
+a one-time data upload (break-even is under 2 rounds). So the benefit of federation here is **not**
+bandwidth — it is **privacy and data locality**: the raw leads never leave a tenant, regardless of
+how many rounds run. The communication picture flips in federation's favour when the data is large
+or continuously growing (model size is fixed while a central dataset grows without bound), when data
+legally cannot move, or when update compression/quantization is applied — all standard directions
+for reducing FL communication, noted here as future work rather than claimed.
+
 ## How the targets are met
 
 - Cross-client gain: one tenant (Direct Traffic) is deliberately made data-poor by capping its

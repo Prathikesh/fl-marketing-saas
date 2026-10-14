@@ -56,6 +56,7 @@ make privacy    # run the membership inference privacy test
 make epsilon    # privacy vs accuracy vs leakage trade-off across DP noise levels
 make faults     # fault tolerance under per-round tenant dropout
 make robust     # robust aggregation defending against a poisoning tenant
+make commcost   # communication cost: federated vs centralized bandwidth
 make serve      # launch the REST API
 make test       # run the test suite
 ```
