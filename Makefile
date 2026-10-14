@@ -1,4 +1,4 @@
-.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon faults robust commcost serve ui-install ui test lint format
+.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon faults robust commcost notebook serve ui-install ui test lint format
 
 export PYTHONPATH := src
 
@@ -40,6 +40,9 @@ robust:
 
 commcost:
 	python scripts/run_comm_cost.py
+
+notebook:
+	jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=400 notebooks/fl_marketing_complete.ipynb
 
 serve:
 	python scripts/serve_api.py

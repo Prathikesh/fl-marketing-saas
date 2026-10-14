@@ -57,9 +57,18 @@ make epsilon    # privacy vs accuracy vs leakage trade-off across DP noise level
 make faults     # fault tolerance under per-round tenant dropout
 make robust     # robust aggregation defending against a poisoning tenant
 make commcost   # communication cost: federated vs centralized bandwidth
+make notebook   # execute the end-to-end analysis notebook
 make serve      # launch the REST API
 make test       # run the test suite
 ```
+
+## Notebook
+
+[notebooks/fl_marketing_complete.ipynb](notebooks/fl_marketing_complete.ipynb) is the complete,
+runnable walkthrough: EDA, preprocessing, the model, centralized vs federated training with
+confusion matrix / ROC, every experiment (cross-client gain, personalization, privacy, robustness,
+fault tolerance), the MLOps lifecycle, and architecture diagrams. Regenerate outputs with
+`make notebook`.
 
 ## Documentation
 
