@@ -33,7 +33,12 @@ make ui                                # starts Vite at http://localhost:5173 an
 The React app talks to the API through a dev proxy (`/api` -> `http://127.0.0.1:8000`), so there are
 no cross-origin issues. The header shows "API connected" when the backend is reachable.
 
-In the UI:
+The UI has two tabs. "Live demo" is the interactive predictor; "Research results" shows the measured
+benchmark charts (cross-tenant gain + personalization, privacy vs accuracy, robustness to poisoning,
+fault tolerance, communication cost) — each labelled with the `make` target that reproduces it, so
+the whole evaluation is visible at a glance during the demo. A light/dark toggle sits in the header.
+
+In the Live demo tab:
 1. Click "High-intent sample" then "Predict conversion". The prediction panel first shows the live
    pipeline — encoding the 79 lead features, running inference on the federated model, then
    registering the lead in the delayed-label buffer — before revealing the probability gauge near
