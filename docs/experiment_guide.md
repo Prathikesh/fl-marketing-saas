@@ -118,9 +118,31 @@ which is itself an honest, explainable nuance.
 python scripts/run_privacy_attack.py
 ```
 
-Runs the shadow-model membership inference attack and reports the attack success rate. The attack
-is repeated across the privacy settings in `config/privacy/` (epsilon = 0.5, 1.0, 2.0) to chart
-the privacy-accuracy trade-off.
+Runs the shadow-model membership inference attack and reports the attack success rate.
+
+### Epsilon sweep (privacy vs accuracy vs leakage)
+
+`scripts/run_epsilon_sweep.py` (`make epsilon`) sweeps the DP noise multiplier and reports, for each
+level, the federated pooled-test F1, the measured per-round privacy budget, and the membership
+inference advantage from the same shadow-model attack:
+
+| Setting | Noise mult. | eps / round | Federated F1 | MI advantage |
+|---------|------------:|------------:|-------------:|-------------:|
+| Non-private | — | inf | 0.7872 | +4.0% |
+| Strong | 1.6 | 2.18 | 0.7249 | -0.3% |
+| Medium | 1.1 | 3.83 | 0.7252 | +0.1% |
+| Weak | 0.8 | 6.71 | 0.7331 | +0.3% |
+
+Reading: differential privacy costs about 5-6 F1 points, and in exchange the membership advantage
+collapses from +4.0% (non-private) to within +/-0.3% (well inside the <= 5% target) at every DP
+level. Accuracy is roughly flat across DP strengths here because the dominant cost is turning DP on
+at all, not the exact noise level.
+
+Honest caveat on epsilon: the `config/privacy/` filenames (0.5 / 1.0 / 2.0) are *design targets*.
+The measured per-round epsilon reported above is higher (2.18 / 3.83 / 6.71), and the cumulative
+epsilon over all federated rounds is higher still. So the strict epsilon <= 1 guarantee is not met at
+this noise/round budget; the defensible claim is the empirical one — DP drives measured leakage to
+near zero at a quantified accuracy cost — not a formal small-epsilon guarantee.
 
 ## How the targets are met
 
