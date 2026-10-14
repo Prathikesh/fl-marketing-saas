@@ -42,6 +42,19 @@ export const ROBUSTNESS = {
   ],
 };
 
+export const ABLATION = {
+  model: [
+    { change: "Baseline model (kept)", f1: 0.7872, verdict: "best" },
+    { change: "Class-weighted loss", f1: 0.7665, verdict: "worse" },
+    { change: "LayerNorm architecture", f1: 0.7692, verdict: "worse" },
+    { change: "Cosine LR schedule", f1: 0.7584, verdict: "worse" },
+    { change: "25 rounds", f1: 0.7829, verdict: "worse" },
+    { change: "40 rounds", f1: 0.7798, verdict: "worse" },
+    { change: "FedProx μ = 0.1", f1: 0.7851, verdict: "worse" },
+    { change: "5-seed ensemble", f1: 0.7892, verdict: "flat" },
+  ],
+};
+
 export const COMM = {
   reproduce: "make commcost",
   updateSize: "72.5 KB",

@@ -163,8 +163,22 @@ pre { background: var(--surface-2); border: 1px solid var(--line); border-radius
 .good-text { color: var(--good); font-weight: 600; }
 .crit-text { color: var(--critical); font-weight: 600; }
 
+/* Ablation & overview */
+.doc { display: flex; flex-direction: column; gap: 22px; }
+.doc .card h2 { margin-bottom: 12px; }
+.doc p { color: var(--ink-2); font-size: 13.5px; line-height: 1.6; margin: 0 0 12px; }
+.doc p:last-child { margin-bottom: 0; }
+.doc strong { color: var(--ink); font-weight: 650; }
+.doc em { font-style: normal; color: var(--ink); }
+.pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.pillar { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.pillar b { display: block; font-size: 13px; color: var(--ink); margin-bottom: 5px; }
+.pillar span { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+.doclist { margin: 6px 0 14px; padding-left: 20px; }
+.doclist li { font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-bottom: 6px; }
+
 @media (max-width: 920px) {
-  .grid, .results-grid { grid-template-columns: 1fr; }
+  .grid, .results-grid, .pillars { grid-template-columns: 1fr; }
   .ggroup { grid-template-columns: 100px 1fr; }
   .brow { grid-template-columns: 120px 1fr 52px; }
 }

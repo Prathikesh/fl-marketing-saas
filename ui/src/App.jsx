@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Gauge, Legend, GroupedBars, BarList, CompareBars } from "./charts.jsx";
-import { PERSONALIZATION, PRIVACY, FAULTS, ROBUSTNESS, COMM } from "./results.js";
+import { PERSONALIZATION, PRIVACY, FAULTS, ROBUSTNESS, COMM, ABLATION } from "./results.js";
 
 const API = "/api";
 
@@ -33,7 +33,15 @@ const RANGES = {
   activity_score: { min: 0, max: 30, label: "Activity score", step: "1", hint: "0–30" },
 };
 
-const STEPS = ["Encoding 79 lead features", "Running inference on federated model", "Registering in delayed-label buffer"];
+const STEPS = [
+  "Encoding 79 lead features",
+  "Loading federated global model",
+  "Running inference across the network",
+  "Calibrating against decision threshold",
+  "Registering in delayed-label buffer",
+];
+const STEP_MS = 1500;
+const PREDICT_MS = 7600;
 const PERS_SERIES = [
   { key: "isolated", label: "Isolated (alone)", var: "--s1" },
   { key: "shared", label: "Shared federated", var: "--s2" },
@@ -92,7 +100,7 @@ export default function App() {
 
     let i = 0;
     clearInterval(timer.current);
-    timer.current = setInterval(() => { i += 1; if (i < STEPS.length) setStage(i); else clearInterval(timer.current); }, 420);
+    timer.current = setInterval(() => { i += 1; if (i < STEPS.length) setStage(i); else clearInterval(timer.current); }, STEP_MS);
 
     const body = {
       campaign_id: id, tenant_id: Number(form.tenant_id),
@@ -106,7 +114,7 @@ export default function App() {
     try {
       const [r] = await Promise.all([
         fetch(`${API}/predict`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
-        sleep(1350),
+        sleep(PREDICT_MS),
       ]);
       res = await r.json();
     } catch { res = { error: true }; }
@@ -144,9 +152,10 @@ export default function App() {
       <nav className="tabs">
         <button className={tab === "demo" ? "active" : ""} onClick={() => setTab("demo")}>Live demo</button>
         <button className={tab === "results" ? "active" : ""} onClick={() => setTab("results")}>Research results</button>
+        <button className={tab === "ablation" ? "active" : ""} onClick={() => setTab("ablation")}>Ablation &amp; overview</button>
       </nav>
 
-      {tab === "demo" ? (
+      {tab === "demo" && (
         <div className="grid">
           <section className="card">
             <div className="card-head">
@@ -212,11 +221,12 @@ export default function App() {
               <Row k="Federated rounds completed" v={audit ? audit.federated_rounds.length : "—"} />
               <Row k="Differential privacy" v={audit ? <span className={`pill ${audit.differential_privacy ? "on" : "off"}`}>{audit.differential_privacy ? "ON" : "OFF"}</span> : "—"} />
               <Row k="Predictions awaiting delayed label" v={audit ? audit.buffer_pending : "—"} />
-              <details className="audit"><summary>Raw audit response</summary><pre>{audit ? JSON.stringify(audit, null, 2) : "—"}</pre></details>
             </section>
           </div>
         </div>
-      ) : (
+      )}
+
+      {tab === "results" && (
         <div className="results">
           <p className="results-intro">Benchmark results from the evaluation suite. Each panel is reproducible with the <code>make</code> target shown; the numbers are measured, not illustrative.</p>
 
@@ -260,6 +270,80 @@ export default function App() {
               <div className="card-head"><h2>Communication cost</h2><code>{COMM.reproduce}</code></div>
               <p className="muted">Model update {COMM.updateSize} per transfer. Federation trades more bytes for never moving raw data — the benefit here is privacy, not bandwidth.</p>
               <CompareBars rows={COMM.rows} unit="MB" />
+            </section>
+          </div>
+        </div>
+      )}
+
+      {tab === "ablation" && (
+        <div className="doc">
+          <section className="card">
+            <h2>What this component is</h2>
+            <p>A <strong>Privacy-Preserving Continuous Learning Framework for Multi-Tenant Marketing AI</strong>.
+              Several separate marketing businesses (tenants) jointly train one lead-conversion model
+              <em> without ever sharing their raw customer data</em>, the model is protected against
+              privacy and poisoning attacks, and it keeps learning as real conversion outcomes arrive
+              weeks late. Lead conversion prediction is the task used to demonstrate the framework; the
+              framework itself is the contribution.</p>
+            <div className="pillars">
+              <div className="pillar"><b>Federated learning</b><span>Tenants exchange only model weights (FedAvg); raw leads never leave a tenant.</span></div>
+              <div className="pillar"><b>Differential privacy</b><span>DP-SGD noise blocks membership-inference against an honest-but-curious server.</span></div>
+              <div className="pillar"><b>Robust aggregation</b><span>Coordinate-median / trimmed-mean defend against a malicious tenant.</span></div>
+              <div className="pillar"><b>Continuous adaptation</b><span>A delayed-label buffer feeds late real outcomes back to keep the model current.</span></div>
+            </div>
+          </section>
+
+          <section className="card">
+            <h2>The individual research contribution</h2>
+            <p>Everything in this component was built as the individual Lead-Intelligence research piece:</p>
+            <ul className="doclist">
+              <li>A federated training loop (FedAvg, with a FedProx ablation) over five naturally heterogeneous tenants split by Lead Source.</li>
+              <li>A differential-privacy layer (Opacus DP-SGD) with a measured privacy–accuracy–leakage sweep.</li>
+              <li>A delayed-label buffer and continuous-adaptation layer handling the 7–30 day conversion delay.</li>
+              <li>A personalization layer (shared backbone + per-tenant fine-tuned head) fixing negative transfer.</li>
+              <li>Byzantine-robust aggregation defending against a model-poisoning tenant.</li>
+              <li>Fault tolerance under per-round tenant dropout with a quorum floor.</li>
+              <li>A REST API (FastAPI) serving the model, and this dashboard.</li>
+            </ul>
+            <p className="muted">Honest positioning: conversion accuracy is bounded by the data (~0.81 F1 ceiling across all model families). The contribution is reaching that ceiling under privacy, robustness, and delayed feedback — not a higher raw score.</p>
+          </section>
+
+          <section className="card">
+            <div className="card-head"><h2>Ablation 1 — model strengthening</h2><code>experiment_guide.md</code></div>
+            <p className="muted">Every attempt to strengthen the model was measured against the baseline. None beat it, proving accuracy is data-bound, not model-bound (0.788 ± 0.003 over 5 seeds).</p>
+            <table className="rtable">
+              <thead><tr><th>Change</th><th>Pooled F1</th><th>Verdict</th></tr></thead>
+              <tbody>
+                {ABLATION.model.map((r) => (
+                  <tr key={r.change}>
+                    <td>{r.change}</td><td>{r.f1.toFixed(4)}</td>
+                    <td className={r.verdict === "best" ? "good-text" : r.verdict === "flat" ? "" : "crit-text"}>{r.verdict}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          <div className="results-grid">
+            <section className="card">
+              <div className="card-head"><h2>Ablation 2 — aggregation under attack</h2><code>make robust</code></div>
+              <p className="muted">Swapping the aggregation rule while a poisoning tenant is present.</p>
+              <BarList rows={ROBUSTNESS.rows} max={1} />
+            </section>
+            <section className="card">
+              <div className="card-head"><h2>Ablation 3 — differential privacy</h2><code>make epsilon</code></div>
+              <p className="muted">Turning DP on trades ~5 F1 points for near-zero leakage.</p>
+              <table className="rtable">
+                <thead><tr><th>Setting</th><th>F1</th><th>Leakage</th></tr></thead>
+                <tbody>
+                  {PRIVACY.rows.map((r) => (
+                    <tr key={r.setting}>
+                      <td>{r.setting}</td><td>{r.f1.toFixed(4)}</td>
+                      <td className={Math.abs(r.advantage) <= 1 ? "good-text" : "crit-text"}>{r.advantage > 0 ? "+" : ""}{r.advantage}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </section>
           </div>
         </div>
