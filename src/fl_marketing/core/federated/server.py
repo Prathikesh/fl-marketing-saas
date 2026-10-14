@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import torch
 
+from typing import Callable
+
 from fl_marketing.core.federated.aggregator import fedavg
 from fl_marketing.core.federated.client import FederatedClient
 from fl_marketing.core.federated.strategy import drop_fixed, select_clients, tolerate_dropout
+from fl_marketing.types import ModelUpdate
 from fl_marketing.models.conversion_net import ConversionNet
 from fl_marketing.utils.logging import get_logger
 
@@ -20,6 +23,7 @@ class FederatedServer:
         min_clients: int,
         dropout_rate: float = 0.0,
         drop_per_round: int = 0,
+        aggregator: Callable[[list[ModelUpdate]], dict[str, torch.Tensor]] = fedavg,
     ) -> None:
         self.clients = clients
         self.feature_dim = feature_dim
@@ -27,6 +31,7 @@ class FederatedServer:
         self.min_clients = min_clients
         self.dropout_rate = dropout_rate
         self.drop_per_round = drop_per_round
+        self.aggregator = aggregator
         self.audit: list[dict] = []
 
     def run(self) -> dict[str, torch.Tensor]:
@@ -38,7 +43,7 @@ class FederatedServer:
                 participating = select_clients(self.clients, self.dropout_rate)
             updates = [c.train_round(global_state) for c in participating]
             updates = tolerate_dropout(updates, self.min_clients)
-            global_state = fedavg(updates)
+            global_state = self.aggregator(updates)
             self.audit.append({"round": r, "participating_tenants": len(updates)})
             log.info("round %d/%d: aggregated %d tenant updates", r, self.rounds, len(updates))
         return global_state

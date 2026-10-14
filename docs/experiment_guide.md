@@ -161,6 +161,27 @@ negligible F1 change, because FedAvg is sample-weighted and the remaining tenant
 feature space. At 60% dropout the server hits the `min_clients` floor and aborts the round rather
 than aggregating too few updates: graceful degradation plus a hard safety floor.
 
+## Robustness (poisoning attack + robust aggregation)
+
+Plain FedAvg trusts every tenant: a single malicious tenant that sends corrupted weight updates can
+wreck the global model. `scripts/run_robustness.py` (`make robust`) demonstrates this and the
+defence. One tenant (the largest, tenant 0) is turned into a `PoisoningClient` that sends negated,
+scaled weights (a model-poisoning attack); the aggregator is then swapped between FedAvg and two
+Byzantine-robust rules (coordinate-wise median, trimmed mean):
+
+| Scenario | Aggregator | Federated F1 |
+|----------|------------|-------------:|
+| No attack | FedAvg | 0.7872 |
+| 1 poisoning tenant | FedAvg | 0.5436 |
+| 1 poisoning tenant | Coordinate median | 0.7572 |
+| 1 poisoning tenant | Trimmed mean | 0.7742 |
+
+The attack collapses FedAvg (0.79 -> 0.54) because the weighted average is dragged toward the
+poisoned update. The robust rules aggregate each parameter coordinate independently and discard
+outliers (median takes the middle value; trimmed mean drops the extremes), so the single attacker is
+filtered out and accuracy is almost fully restored. This pairs a *security* guarantee (robustness to
+a malicious tenant) with the existing *privacy* guarantee (DP against an honest-but-curious server).
+
 ## How the targets are met
 
 - Cross-client gain: one tenant (Direct Traffic) is deliberately made data-poor by capping its

@@ -51,6 +51,12 @@ best; larger mu lowered F1), because the tenants genuinely differ and constraini
 global model removes useful specialisation. It is kept as a configurable ablation; the default is
 `mu: 0.0` (plain FedAvg).
 
+Robust aggregation: `core/federated/aggregator.py` also provides `coordinate_median` and
+`trimmed_mean` alongside `fedavg`, and `FederatedServer` takes the aggregator as a parameter. A
+`PoisoningClient` (`core/federated/attacks.py`) models a malicious tenant sending corrupted updates;
+`scripts/run_robustness.py` shows FedAvg collapsing under it while the robust rules filter the
+attacker out. This is the security counterpart to the DP privacy layer.
+
 Personalization: `core/federated/personalization.py` (`scripts/run_personalization.py`) addresses
 the non-IID penalty from the other direction. Instead of forcing tenants together, it keeps the
 shared federated backbone and fine-tunes only the final layer on each tenant's own data (FedPer

@@ -55,6 +55,7 @@ make personalize # per-tenant personalization (shared backbone + fine-tuned head
 make privacy    # run the membership inference privacy test
 make epsilon    # privacy vs accuracy vs leakage trade-off across DP noise levels
 make faults     # fault tolerance under per-round tenant dropout
+make robust     # robust aggregation defending against a poisoning tenant
 make serve      # launch the REST API
 make test       # run the test suite
 ```

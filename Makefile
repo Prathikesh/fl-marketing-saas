@@ -1,4 +1,4 @@
-.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon faults serve ui-install ui test lint format
+.PHONY: install dev prepare train baseline evaluate personalize delayed privacy epsilon faults robust serve ui-install ui test lint format
 
 export PYTHONPATH := src
 
@@ -34,6 +34,9 @@ epsilon:
 
 faults:
 	python scripts/run_fault_tolerance.py
+
+robust:
+	python scripts/run_robustness.py
 
 serve:
 	python scripts/serve_api.py
