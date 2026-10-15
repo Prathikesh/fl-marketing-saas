@@ -2,6 +2,11 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Gauge, Legend, GroupedBars, BarList, CompareBars } from "./charts.jsx";
 import { PERSONALIZATION, PRIVACY, FAULTS, ROBUSTNESS, COMM, ABLATION } from "./results.js";
 
+const EMBEDDED = {
+  personalization: PERSONALIZATION, privacy: PRIVACY, faults: FAULTS,
+  robustness: ROBUSTNESS, comm: COMM, ablation: ABLATION,
+};
+
 const API = "/api";
 
 const TENANTS = [
@@ -72,6 +77,7 @@ export default function App() {
   const [online, setOnline] = useState(false);
   const [predicting, setPredicting] = useState(false);
   const [stage, setStage] = useState(0);
+  const [res, setRes] = useState(EMBEDDED);
   const timer = useRef(null);
 
   const errors = validate(form);
@@ -89,6 +95,9 @@ export default function App() {
   }, []);
 
   useEffect(() => { refreshAudit(); }, [refreshAudit]);
+  useEffect(() => {
+    fetch(`${API}/results`).then((r) => r.ok ? r.json() : null).then((d) => { if (d) setRes(d); }).catch(() => {});
+  }, []);
   useEffect(() => () => clearInterval(timer.current), []);
 
   const predict = async () => {
@@ -231,20 +240,20 @@ export default function App() {
           <p className="results-intro">Benchmark results from the evaluation suite. Each panel is reproducible with the <code>make</code> target shown; the numbers are measured, not illustrative.</p>
 
           <section className="card wide">
-            <div className="card-head"><h2>Cross-tenant learning &amp; personalization</h2><code>{PERSONALIZATION.reproduce}</code></div>
+            <div className="card-head"><h2>Cross-tenant learning &amp; personalization</h2><code>{res.personalization.reproduce}</code></div>
             <p className="muted">Test F1 per tenant. Federation lifts the data-poor tenant; personalization recovers the divergent tenant (Olark Chat) that the shared model alone hurt — so every tenant ends at least as good as training alone.</p>
             <Legend series={PERS_SERIES} />
-            <GroupedBars tenants={PERSONALIZATION.tenants} series={PERS_SERIES} domain={1} />
+            <GroupedBars tenants={res.personalization.tenants} series={PERS_SERIES} domain={1} />
           </section>
 
           <div className="results-grid">
             <section className="card">
-              <div className="card-head"><h2>Privacy vs accuracy</h2><code>{PRIVACY.reproduce}</code></div>
+              <div className="card-head"><h2>Privacy vs accuracy</h2><code>{res.privacy.reproduce}</code></div>
               <p className="muted">Differential privacy collapses membership-inference leakage from +4% to within ±0.3% for a ~5-point F1 cost.</p>
               <table className="rtable">
                 <thead><tr><th>Setting</th><th>ε/round</th><th>F1</th><th>Leakage</th></tr></thead>
                 <tbody>
-                  {PRIVACY.rows.map((r) => (
+                  {res.privacy.rows.map((r) => (
                     <tr key={r.setting}>
                       <td>{r.setting}</td><td>{r.eps}</td><td>{r.f1.toFixed(4)}</td>
                       <td className={Math.abs(r.advantage) <= 1 ? "good-text" : "crit-text"}>{r.advantage > 0 ? "+" : ""}{r.advantage}%</td>
@@ -255,21 +264,21 @@ export default function App() {
             </section>
 
             <section className="card">
-              <div className="card-head"><h2>Robustness to poisoning</h2><code>{ROBUSTNESS.reproduce}</code></div>
+              <div className="card-head"><h2>Robustness to poisoning</h2><code>{res.robustness.reproduce}</code></div>
               <p className="muted">One malicious tenant collapses plain FedAvg; robust aggregation filters it out.</p>
-              <BarList rows={ROBUSTNESS.rows} max={1} />
+              <BarList rows={res.robustness.rows} max={1} />
             </section>
 
             <section className="card">
-              <div className="card-head"><h2>Fault tolerance</h2><code>{FAULTS.reproduce}</code></div>
+              <div className="card-head"><h2>Fault tolerance</h2><code>{res.faults.reproduce}</code></div>
               <p className="muted">Global F1 as tenants drop out per round. Below quorum (min 3 of 5) the server safely aborts.</p>
-              <BarList rows={FAULTS.rows} max={1} nullLabel="quorum lost" />
+              <BarList rows={res.faults.rows} max={1} nullLabel="quorum lost" />
             </section>
 
             <section className="card">
-              <div className="card-head"><h2>Communication cost</h2><code>{COMM.reproduce}</code></div>
-              <p className="muted">Model update {COMM.updateSize} per transfer. Federation trades more bytes for never moving raw data — the benefit here is privacy, not bandwidth.</p>
-              <CompareBars rows={COMM.rows} unit="MB" />
+              <div className="card-head"><h2>Communication cost</h2><code>{res.comm.reproduce}</code></div>
+              <p className="muted">Model update {res.comm.updateSize} per transfer. Federation trades more bytes for never moving raw data — the benefit here is privacy, not bandwidth.</p>
+              <CompareBars rows={res.comm.rows} unit="MB" />
             </section>
           </div>
         </div>
@@ -314,7 +323,7 @@ export default function App() {
             <table className="rtable">
               <thead><tr><th>Change</th><th>Pooled F1</th><th>Verdict</th></tr></thead>
               <tbody>
-                {ABLATION.model.map((r) => (
+                {res.ablation.model.map((r) => (
                   <tr key={r.change}>
                     <td>{r.change}</td><td>{r.f1.toFixed(4)}</td>
                     <td className={r.verdict === "best" ? "good-text" : r.verdict === "flat" ? "" : "crit-text"}>{r.verdict}</td>
@@ -328,7 +337,7 @@ export default function App() {
             <section className="card">
               <div className="card-head"><h2>Ablation 2 — aggregation under attack</h2><code>make robust</code></div>
               <p className="muted">Swapping the aggregation rule while a poisoning tenant is present.</p>
-              <BarList rows={ROBUSTNESS.rows} max={1} />
+              <BarList rows={res.robustness.rows} max={1} />
             </section>
             <section className="card">
               <div className="card-head"><h2>Ablation 3 — differential privacy</h2><code>make epsilon</code></div>
@@ -336,7 +345,7 @@ export default function App() {
               <table className="rtable">
                 <thead><tr><th>Setting</th><th>F1</th><th>Leakage</th></tr></thead>
                 <tbody>
-                  {PRIVACY.rows.map((r) => (
+                  {res.privacy.rows.map((r) => (
                     <tr key={r.setting}>
                       <td>{r.setting}</td><td>{r.f1.toFixed(4)}</td>
                       <td className={Math.abs(r.advantage) <= 1 ? "good-text" : "crit-text"}>{r.advantage > 0 ? "+" : ""}{r.advantage}%</td>

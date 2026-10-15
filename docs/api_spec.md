@@ -60,6 +60,13 @@ predictions still waiting for their delayed label.
 
 Returns the tenant id to source-name mapping.
 
+## GET /results
+
+Returns the measured benchmark results (personalization, privacy sweep, fault tolerance, robustness,
+communication cost, model-strengthening ablation) from `experiments/results/results.json`. The React
+dashboard fetches this to populate the "Research results" and "Ablation & overview" tabs, falling
+back to its embedded copy if the API is offline.
+
 ## Notes
 
 - Request/response shapes are defined in `src/fl_marketing/api/schemas.py`.

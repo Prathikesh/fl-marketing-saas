@@ -23,6 +23,7 @@ data/external/*
 models/
 experiments/results/*
 !experiments/results/.gitkeep
+!experiments/results/results.json
 
 # Databases
 *.sqlite
