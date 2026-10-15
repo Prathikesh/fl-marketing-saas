@@ -76,6 +76,7 @@ fault tolerance), the MLOps lifecycle, and architecture diagrams. Regenerate out
 - [docs/data_pipeline.md](docs/data_pipeline.md) — how raw data becomes per-tenant datasets.
 - [docs/api_spec.md](docs/api_spec.md) — the REST contract used by other platform components.
 - [docs/experiment_guide.md](docs/experiment_guide.md) — how to reproduce every result.
+- [docs/report/](docs/report/) — the full write-up (introduction → results → conclusion).
 - [data/README.md](data/README.md) — datasets, sources, and field definitions.
 
 ## Status
