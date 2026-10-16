@@ -164,6 +164,27 @@ pre { background: var(--surface-2); border: 1px solid var(--line); border-radius
 .good-text { color: var(--good); font-weight: 600; }
 .crit-text { color: var(--critical); font-weight: 600; }
 
+/* hover interactivity on bar rows */
+.brow, .grow, .abrow { cursor: default; }
+.brow:hover .bfill, .grow:hover .gfill, .abrow:hover .abfill { filter: brightness(1.12); }
+.brow:hover .blabel, .abrow:hover .ablabel { color: var(--ink); }
+
+/* Ablation bar chart */
+.ablist { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.abrow { display: grid; grid-template-columns: 185px 1fr 54px 64px; align-items: center; gap: 12px; }
+.ablabel { font-size: 12.5px; color: var(--ink-2); }
+.abtrack { height: 13px; background: var(--surface-2); border-radius: 7px; overflow: hidden; }
+.abfill { height: 100%; border-radius: 7px; transition: width .6s cubic-bezier(.2,.7,.2,1); background: var(--s1); opacity: .55; }
+.abfill.win { background: var(--good); opacity: 1; }
+.abfill.flat { background: var(--s3); opacity: .7; }
+.abfill.low { background: var(--s1); opacity: .5; }
+.abval { font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+.abtag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; text-align: center; padding: 3px 0; border-radius: 6px; }
+.abtag.win { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.abtag.flat { color: var(--ink-2); background: var(--surface-2); }
+.abtag.low { color: var(--muted); background: var(--surface-2); }
+.abaxis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); }
+
 /* Ablation & overview */
 .doc { display: flex; flex-direction: column; gap: 22px; }
 .doc .card h2 { margin-bottom: 12px; }

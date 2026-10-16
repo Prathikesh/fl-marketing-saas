@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Gauge, Legend, GroupedBars, BarList, CompareBars } from "./charts.jsx";
+import { Gauge, Legend, GroupedBars, BarList, CompareBars, AblationBars } from "./charts.jsx";
 import { PERSONALIZATION, PRIVACY, FAULTS, ROBUSTNESS, COMM, ABLATION } from "./results.js";
 
 const EMBEDDED = {
@@ -142,6 +142,7 @@ export default function App() {
   };
 
   const pct = result && !result.error ? result.conversion_probability * 100 : 0;
+  const pctShown = Math.min(99.9, Math.max(0.1, pct));
   const positive = result && result.predicted_converted === 1;
   const gaugeColor = !result || result.error ? "var(--muted)" : positive ? "var(--good)" : "var(--critical)";
 
@@ -210,8 +211,8 @@ export default function App() {
                 </div>
               ) : (
                 <div className="result">
-                  <Gauge pct={pct} color={gaugeColor} idle={!result || result.error} />
-                  <div className="prob" style={{ color: gaugeColor }}>{result && !result.error ? pct.toFixed(1) + "%" : "—"}</div>
+                  <Gauge pct={pctShown} color={gaugeColor} idle={!result || result.error} />
+                  <div className="prob" style={{ color: gaugeColor }}>{result && !result.error ? pctShown.toFixed(1) + "%" : "—"}</div>
                   <div className="verdict" style={{ color: gaugeColor }}>
                     {!result ? "Enter a lead and predict" : result.error ? "API not reachable" : positive ? "Likely to CONVERT" : "Unlikely to convert"}
                   </div>
@@ -320,19 +321,7 @@ export default function App() {
           <section className="card">
             <div className="card-head"><h2>Ablation 1 — model strengthening</h2><code>experiment_guide.md</code></div>
             <p className="muted">The current model is the winner: every alternative tried scored lower or the same. This proves the model already sits at the data's accuracy ceiling (0.788 ± 0.003 over 5 seeds) — a model that tuning cannot beat is a finished model, not a weak one.</p>
-            <table className="rtable">
-              <thead><tr><th>Change tried</th><th>Pooled F1</th><th>vs current model</th></tr></thead>
-              <tbody>
-                {res.ablation.model.map((r) => (
-                  <tr key={r.change}>
-                    <td>{r.change}</td><td>{r.f1.toFixed(4)}</td>
-                    <td className={r.verdict === "best" ? "good-text" : r.verdict === "flat" ? "" : "crit-text"}>
-                      {r.verdict === "best" ? "winner" : r.verdict === "flat" ? "no gain" : "lower"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <AblationBars rows={res.ablation.model} />
           </section>
 
           <div className="results-grid">
