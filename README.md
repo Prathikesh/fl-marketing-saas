@@ -1,5 +1,8 @@
 # FL Marketing SaaS — Privacy-Preserving Continuous Learning Framework
 
+> **New here? Read [PROJECT_GUIDE.md](PROJECT_GUIDE.md)** — a single file covering how to run the
+> project, the model, the accuracy/results, and the MLOps.
+
 A federated learning backend for a multi-tenant AI marketing platform. Multiple marketing
 clients ("tenants") collectively train one shared conversion-prediction model **without sharing
 any raw data**, with differential privacy on every update and a mechanism that handles the
