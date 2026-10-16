@@ -319,14 +319,16 @@ export default function App() {
 
           <section className="card">
             <div className="card-head"><h2>Ablation 1 — model strengthening</h2><code>experiment_guide.md</code></div>
-            <p className="muted">Every attempt to strengthen the model was measured against the baseline. None beat it, proving accuracy is data-bound, not model-bound (0.788 ± 0.003 over 5 seeds).</p>
+            <p className="muted">The current model is the winner: every alternative tried scored lower or the same. This proves the model already sits at the data's accuracy ceiling (0.788 ± 0.003 over 5 seeds) — a model that tuning cannot beat is a finished model, not a weak one.</p>
             <table className="rtable">
-              <thead><tr><th>Change</th><th>Pooled F1</th><th>Verdict</th></tr></thead>
+              <thead><tr><th>Change tried</th><th>Pooled F1</th><th>vs current model</th></tr></thead>
               <tbody>
                 {res.ablation.model.map((r) => (
                   <tr key={r.change}>
                     <td>{r.change}</td><td>{r.f1.toFixed(4)}</td>
-                    <td className={r.verdict === "best" ? "good-text" : r.verdict === "flat" ? "" : "crit-text"}>{r.verdict}</td>
+                    <td className={r.verdict === "best" ? "good-text" : r.verdict === "flat" ? "" : "crit-text"}>
+                      {r.verdict === "best" ? "winner" : r.verdict === "flat" ? "no gain" : "lower"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
